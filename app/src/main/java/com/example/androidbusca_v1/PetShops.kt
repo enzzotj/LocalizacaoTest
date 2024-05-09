@@ -10,8 +10,8 @@ data class PetShops(
     var bairro:String? = null,
     var localidade:String? = null,
     var uf:String? = null,
-    var lng:String? = null,
-    var lat:String? = null,
+    var lng:Double? = null,
+    var lat:Double? = null,
     var distance:String? = null
 ) {
 

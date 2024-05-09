@@ -6,7 +6,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitService {
     val BASE_URL_MAPS = "https://maps.googleapis.com/maps/api/"
 
-    val BASE_URL_PETS = "http://localhost:8080/api/"
+    val BASE_URL_PETS = "http://:8080/api/"
 
     val BASE_URL_GEOLOCATION = "https://www.googleapis.com/geolocation/v1/"
 

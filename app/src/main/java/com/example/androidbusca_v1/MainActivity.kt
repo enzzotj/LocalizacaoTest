@@ -4,11 +4,15 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,11 +37,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Tela(petShopViewModel: PetShopViewModel = PetShopViewModel(), modifier: Modifier = Modifier) {
-    val test = petShopViewModel.localizacao.observeAsState().value?.location
-    val tt = petShopViewModel.erroApi.observeAsState().value!!
-    Column {
-        Text(text = test?.lng.toString())
-        Text(text = tt)
+    val petShops = petShopViewModel.listPetShop.observeAsState().value!!
+    DisposableEffect(petShops) {
+        petShopViewModel.getPetShop()
+        onDispose { }
+    }
+    LazyColumn {
+        items(items = petShops.toList()){
+            Row {
+                Text(text = it.distance.toString())
+            }
+        }
     }
 }
 

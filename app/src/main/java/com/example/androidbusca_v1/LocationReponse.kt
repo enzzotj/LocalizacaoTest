@@ -1,6 +1,6 @@
 package com.example.androidbusca_v1
 
-data class LocationReponse(
+data class LocationResponse(
     val results: List<Results>? = null
 )
 

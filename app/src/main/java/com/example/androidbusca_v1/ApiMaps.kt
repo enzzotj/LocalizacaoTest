@@ -7,7 +7,7 @@ import retrofit2.http.Query
 interface ApiMaps {
 
     @GET("geocode/json")
-    suspend fun getGeocode(@Query("key") key:String, @Query("address") address:String): Response<LocationReponse>
+    suspend fun getGeocode(@Query("key") key:String, @Query("address") address:String): Response<LocationResponse>
 
     @GET("directions/json")
     suspend fun getDirections(@Query("key") key:String, @Query("origin") origin:String, @Query("destination") destination:String): Response<DirectionsResponse>

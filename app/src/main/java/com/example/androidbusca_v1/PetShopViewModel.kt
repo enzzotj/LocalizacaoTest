@@ -15,10 +15,9 @@ class PetShopViewModel:ViewModel() {
     val maps = RetrofitService.getApiMaps()
     val geolocation = RetrofitService.getGeolocation()
     val erroApi = MutableLiveData("")
-    val localizacao = MutableLiveData(GeolocationResponse())
+    val localizacao = MutableLiveData(Location())
     val listPetShop = MutableLiveData(SnapshotStateList<PetShops>())
     val key = "";
-    val v = MutableLiveData("");
 
     init {
         searchLocalization()
@@ -28,15 +27,9 @@ class PetShopViewModel:ViewModel() {
         CoroutineScope(Dispatchers.IO).launch{
             try {
                 val response = geolocation.postGeolocate(key)
-
                 if (response.isSuccessful) {
-                    localizacao.postValue(response.body())
-                    val test: String = distancia("-23.4514382,-46.7319839", "-23.4539037,-46.7374229");
-                    erroApi.postValue(test)
-                    val tt: Location? = buscaPorCep("01414-001");
-                    v.postValue(tt?.lat.toString())
+                    localizacao.postValue(response.body()?.location)
                 } else {
-                    Log.e("api", response.errorBody()!!.string())
                     erroApi.postValue(response.errorBody()!!.string())
                 }
 
@@ -50,18 +43,40 @@ class PetShopViewModel:ViewModel() {
     fun getPetShop(){
         CoroutineScope(Dispatchers.IO).launch{
             try {
-                Log.e("api", "aaaaaaaaaaaaaaaaaaaaaaaaa")
                 val response = petShops.getPetShop();
                 if (response.isSuccessful) {
-                    //teste.postValue(response.body())
+                    listPetShop.value!!.clear()
+                    val petShopList: List<PetShops>? = response.body()
+                    for (petShop in petShopList.orEmpty()) {
+                        val location: Location? = petShop.cep?.let { buscaPorCep(it) }
+                        location?.let {
+                            petShop.lat = it.lat
+                            petShop.lng = it.lng
+
+                            val locUser = localizacao.value
+                            val origin : String = locUser?.lat.toString() + "," + locUser?.lng.toString()
+                            val destination : String = petShop.lat.toString() + "," + petShop.lng.toString()
+                            petShop.distance = distancia(origin, destination)
+                        }
+                    }
+                    val sortedList = petShopList.orEmpty().sortedBy { parseDistance(it.distance) ?: Double.MAX_VALUE }
+                    listPetShop.value!!.addAll(sortedList)
+
                 } else {
-                    Log.e("api", "aaaaaaaaaaaaaaaaaaaaaaaaa")
                     erroApi.postValue(response.errorBody()!!.string())
                 }
             }catch (e: Exception) {
                 Log.e("api", "Deu ruim no get! ${e.message}")
                 erroApi.postValue(e.message)
             }
+        }
+    }
+
+    fun parseDistance(distanceStr: String?): Double? {
+        return distanceStr?.let {
+            val regex = """([0-9.]+)\s+km""".toRegex()
+            val matchResult = regex.find(it)
+            matchResult?.groupValues?.get(1)?.toDoubleOrNull()
         }
     }
 
@@ -73,7 +88,6 @@ class PetShopViewModel:ViewModel() {
                 return response.body()?.routes?.getOrNull(0)?.legs?.getOrNull(0)?.distance?.text ?: ""
 
             } else {
-                Log.e("api", response.errorBody()?.string() ?: "Erro desconhecido")
                 erroApi.postValue(response.errorBody()?.string() ?: "Erro desconhecido")
                 return ""
             }
@@ -90,7 +104,6 @@ class PetShopViewModel:ViewModel() {
             if (response.isSuccessful) {
                     return response.body()?.results?.getOrNull(0)?.geometry?.location
             } else {
-                Log.e("api", "Erro na requisição: ${response.errorBody()?.string()}")
                 erroApi.postValue(response.errorBody()?.string() ?: "Erro desconhecido")
                 return null
             }
